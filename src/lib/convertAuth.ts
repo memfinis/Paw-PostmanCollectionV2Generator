@@ -65,6 +65,16 @@ const convertAuthOAuth2 = (pawOAuth2: Paw.OAuth2, context: Paw.Context): Postman
   return pmAuth
 }
 
+const convertAuthBearer = (pawDigestDv: DynamicValue, context: Paw.Context): Postman.Auth => {
+  const pmAuth: Postman.Auth = {
+    type: "bearer",
+    bearer: [
+      makePmAuthKeyValue('token', (pawDigestDv as any).token, context)
+    ]
+  };
+  return pmAuth;
+}
+
 const convertAuthDigest = (pawDigestDv: DynamicValue, context: Paw.Context): Postman.Auth => {
   const pmAuth: Postman.Auth = {
     type: 'digest',
@@ -115,6 +125,11 @@ const convertAuth = (pawRequest: Paw.Request, context: Paw.Context): Postman.Aut
   const pawAuthHeaderDv = pawAuthHeader.getOnlyDynamicValue()
   if (!pawAuthHeaderDv) {
     return null
+  }
+
+  // Bearer
+  if (pawAuthHeaderDv.type === 'com.memfinis.PawExtensions.BearerTokenDynamicValue') {
+    return convertAuthBearer(pawAuthHeaderDv, context);
   }
 
   // Digest
